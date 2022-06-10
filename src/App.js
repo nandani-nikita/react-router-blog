@@ -6,7 +6,7 @@ import NewPost from './NewPost';
 import PostPage from './PostPage';
 import About from './About';
 import Missing from './Missing';
-import { Route, Routes, useHistory, Link } from 'react-router-dom';
+import { Route, Routes, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 function App() {
@@ -41,8 +41,12 @@ function App() {
 
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const navigate = useNavigate();
 
   const handleDelete = async(id) => {
+    const postsList = posts.filter(post=>post.id!==id);
+    setPosts(postsList);
+    navigate('/about');
 
   }
   return (
