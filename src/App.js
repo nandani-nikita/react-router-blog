@@ -41,10 +41,24 @@ function App() {
 
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [postTitle, setPostTitle] = useState('');
+  const [postBody, setPostBody] = useState('');
   const navigate = useNavigate();
 
-  const handleDelete = async(id) => {
-    const postsList = posts.filter(post=>post.id!==id);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const id = posts.length ? posts[posts.length - 1].id + 1 : 1;
+    const date = (new Date(Date.now())).toDateString();
+    const newPost = { id: id, title: postTitle, date: date, body: postBody };
+    const allPosts = [...posts, newPost];
+    setPosts(allPosts);
+    setPostTitle('');
+    setPostBody('');
+    navigate('/');
+  }
+
+  const handleDelete = async (id) => {
+    const postsList = posts.filter(post => post.id !== id);
     setPosts(postsList);
     navigate('/about');
 
@@ -61,7 +75,7 @@ function App() {
       <Routes >
         <Route exact path='/' element={<Home posts={posts} />} />
 
-        <Route path='post' element={<NewPost />} />
+        <Route path='post' element={<NewPost handleSubmit={handleSubmit} postTitle={postTitle} setPostTitle={setPostTitle} postBody={postBody} setPostBody={setPostBody} />} />
 
         <Route path='post/:id' element={<PostPage posts={posts} handleDelete={handleDelete} />} />
 
