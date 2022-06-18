@@ -4,72 +4,112 @@ import Footer from './Footer';
 import Home from './Home';
 import NewPost from './NewPost';
 import PostPage from './PostPage';
+import EditPost from './EditPost';
 import About from './About';
 import Missing from './Missing';
-import { Route, Routes, useNavigate, Link } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import api from './api/posts';
+
 
 function App() {
 
 
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      title: 'abc 1',
-      date: "blah 1",
-      body: "again blah 1"
-    },
-    {
-      id: 2,
-      title: 'abc 2',
-      date: "blah 2",
-      body: "again blah 2  rgbrg rg rg brb nryy g rgnt nn rgbt nybyr ntrnbryn 4ry nry"
-    },
-    {
-      id: 3,
-      title: 'abc 3',
-      date: "blah 3",
-      body: "again blah 3"
-    },
-    {
-      id: 4,
-      title: 'abc 4',
-      date: "blah 4",
-      body: "again blah 4 fbgggg tge r brgbrygy byrgb r bgrbrg"
-    }
-  ]);
+  const [posts, setPosts] = useState([]);
 
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [postTitle, setPostTitle] = useState('');
-  const [postBody, setPostBody] = useState('');
+  const [postCaption, setPostCaption] = useState('');
+  const [postDescription, setPostDescription] = useState('');
+  const [editCaption, setEditCaption] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await api.get('/posts');
+        console.log(response);
+        setPosts(response.data);
+      } catch (error) {
+        if (error.response) {
+
+          // Not in 200 response range
+          console.log(error.response.data);
+          console.log(error.response.error);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else {
+          console.log(`Error: ${error.message}`);
+        }
+      }
+    }
+    fetchPosts();
+  }, [])
+
+  useEffect(() => {
     const filteredResults = posts.filter(post =>
-      ((post.body).toLowerCase()).includes(search.toLowerCase())
+      ((post.description).toLowerCase()).includes(search.toLowerCase())
       ||
-      ((post.title).toLowerCase()).includes(search.toLowerCase())
+      ((post.caption).toLowerCase()).includes(search.toLowerCase())
     );
-setSearchResults(filteredResults.reverse());
+    setSearchResults(filteredResults);
   }, [posts, search])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const id = posts.length ? posts[posts.length - 1].id + 1 : 1;
-    const date = (new Date(Date.now())).toDateString();
-    const newPost = { id: id, title: postTitle, date: date, body: postBody };
-    const allPosts = [...posts, newPost];
-    setPosts(allPosts);
-    setPostTitle('');
-    setPostBody('');
-    navigate('/');
-  }
+    const uploaded_on = (new Date(Date.now())).toDateString();
+    const newPost = { id: id, caption: postCaption, uploaded_on: uploaded_on, description: postDescription };
+    try {
+      const response = await api.post('/posts', newPost)
+      const allPosts = [...posts, response.data];
+      setPosts(allPosts);
+      setPostCaption('');
+      setPostDescription('');
+      navigate('/');
 
+    } catch (error) {
+      console.log(`Error: ${error.message}`);
+
+    }
+  }
+  const handleEdit = async (id) => {
+    const uploaded_on = (new Date(Date.now())).toDateString();
+    const updatedPost = { id: id, caption: editCaption, uploaded_on: uploaded_on, description: editDescription };
+    try {
+      const response = await api.put(`/posts/${id}`, updatedPost);
+
+      setPosts(posts.map(post => {
+        console.log(post.id, id);
+        if(post.id===id){
+          console.log('=====================');
+          console.log(post);
+          console.log({ ...response.data });
+        } else {
+          console.log(post);
+        }
+        return (post.id === id ? { ...response.data } : post)
+      }));
+      setEditCaption('');
+      setEditDescription('');
+      navigate('/');
+
+    } catch (error) {
+      console.log(`Error: ${error.message}`);
+
+    }
+  }
   const handleDelete = async (id) => {
-    const postsList = posts.filter(post => post.id !== id);
-    setPosts(postsList);
-    navigate('/');
+    try {
+      await api.delete(`/posts/${id}`);
+      const postsList = posts.filter(post => post.id !== id);
+      setPosts(postsList);
+      navigate('/');
+
+    } catch (error) {
+      console.log(error.message);
+    }
 
   }
   return (
@@ -84,7 +124,9 @@ setSearchResults(filteredResults.reverse());
       <Routes >
         <Route exact path='/' element={<Home posts={searchResults} />} />
 
-        <Route path='post' element={<NewPost handleSubmit={handleSubmit} postTitle={postTitle} setPostTitle={setPostTitle} postBody={postBody} setPostBody={setPostBody} />} />
+        <Route path='post' element={<NewPost handleSubmit={handleSubmit} postCaption={postCaption} setPostCaption={setPostCaption} postDescription={postDescription} setPostDescription={setPostDescription} />} />
+
+        <Route path='edit/:id' element={<EditPost posts={posts} handleEdit={handleEdit} editCaption={editCaption} setEditCaption={setEditCaption} editDescription={editDescription} setEditDescription={setEditDescription} />} />
 
         <Route path='post/:id' element={<PostPage posts={posts} handleDelete={handleDelete} />} />
 
