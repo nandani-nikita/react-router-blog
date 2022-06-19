@@ -10,7 +10,7 @@ import Missing from './Missing';
 import { Route, Routes, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from './api/posts';
-
+import useWindowSize from './hooks/useWindowSize';
 
 function App() {
 
@@ -24,6 +24,7 @@ function App() {
   const [editCaption, setEditCaption] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const navigate = useNavigate();
+  const {width} = useWindowSize();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -115,7 +116,7 @@ function App() {
   return (
     <div className='App'>
 
-      <Header title={'Art Blog'} />
+      <Header title={'Art Blog'} width={width} />
       <Nav
         search={search}
         setSearch={setSearch}
