@@ -11,6 +11,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from './api/posts';
 import useWindowSize from './hooks/useWindowSize';
+import useAxiosFetch from './hooks/useAxiosFetch';
 
 function App() {
 
@@ -24,29 +25,39 @@ function App() {
   const [editCaption, setEditCaption] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const navigate = useNavigate();
-  const {width} = useWindowSize();
+  const { width } = useWindowSize();
+
+  // // was used before we implemented custom hook useAxiosFetch
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     try {
+  //       const response = await api.get('/posts');
+  //       console.log(response);
+  //       setPosts(response.data);
+  //     } catch (error) {
+  //       if (error.response) {
+
+  //         // Not in 200 response range
+  //         console.log(error.response.data);
+  //         console.log(error.response.error);
+  //         console.log(error.response.status);
+  //         console.log(error.response.headers);
+  //       } else {
+  //         console.log(`Error: ${error.message}`);
+  //       }
+  //     }
+  //   }
+  //   fetchPosts();
+  // }, [])
+
+
+  // // After implementing custom useEffectAxios -> 
+  const { data, fetchError, isLoading } = useAxiosFetch('http://localhost:3500/posts');
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await api.get('/posts');
-        console.log(response);
-        setPosts(response.data);
-      } catch (error) {
-        if (error.response) {
-
-          // Not in 200 response range
-          console.log(error.response.data);
-          console.log(error.response.error);
-          console.log(error.response.status);
-          console.log(error.response.headers);
-        } else {
-          console.log(`Error: ${error.message}`);
-        }
-      }
-    }
-    fetchPosts();
-  }, [])
+    setPosts(data);
+  }, [data])
+  // // // // // // // // // // //
 
   useEffect(() => {
     const filteredResults = posts.filter(post =>
@@ -83,7 +94,7 @@ function App() {
 
       setPosts(posts.map(post => {
         console.log(post.id, id);
-        if(post.id===id){
+        if (post.id === id) {
           console.log('=====================');
           console.log(post);
           console.log({ ...response.data });
@@ -123,7 +134,11 @@ function App() {
       />
 
       <Routes >
-        <Route exact path='/' element={<Home posts={searchResults} />} />
+        <Route exact path='/' element={<Home
+          posts={searchResults}
+          fetchError={fetchError}
+          isLoading={isLoading}
+        />} />
 
         <Route path='post' element={<NewPost handleSubmit={handleSubmit} postCaption={postCaption} setPostCaption={setPostCaption} postDescription={postDescription} setPostDescription={setPostDescription} />} />
 

@@ -12,7 +12,7 @@ const useAxiosFetch = (dataUrl) => {
         const source = axios.CancelToken.source();
 
         const fetchData = async (url) => {
-            setIsLoading = true;
+            setIsLoading(true);
             try {
                 const response = await axios.get(url, {
                     cancelToken: source.token
@@ -27,13 +27,16 @@ const useAxiosFetch = (dataUrl) => {
                     setData([]);
                 }
             } finally {
-                isMounted && setTimeout(() => setIsLoading(false), 2000);
+                isMounted && setIsLoading(false);
+
+                // // Perform below to check how above code works
+                // isMounted && setTimeout(() => setIsLoading(false), 2000);
             }
         }
         fetchData(dataUrl);
 
         const cleanUp = () => {
-            console.log('Clean up function');
+            // console.log('Clean up function');
             isMounted = false;
             source.cancel();
         }
